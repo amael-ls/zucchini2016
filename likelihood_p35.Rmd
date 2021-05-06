@@ -101,3 +101,30 @@ combinations[, product := delta_i*pi_1 * gamma_ij*pj_1 * gamma_jk*pk_1]
 ```
 Each row correspond to one combination of $(i, j, k)$. The sum gives the probability $\Prm(X_1 = 1, X_2 = 1, X_3 = 1) =$ `r as.character(combinations[, MASS::fractions(sum(product))])`
 
+# Likelihood in general (p. 36)
+
+The formulae to remember is that the likelihood, $L_T$, of an observation sequence \(c_1, x_2, \dots, x_T\) is:
+\[
+	L_T = \bm \delta \bm P(x_1) \bm \Gamma \bm P(x_2) \cdots \bm{\Gamma} \bm P(x_T) \mathds{1}'
+\]
+and in the case $\delta$ is the stationnary distribution associated to $\bm \Gamma$, then we get:
+\[
+	L_T = \bm \Gamma \bm \delta \bm P(x_1) \bm \Gamma \bm P(x_2) \cdots \bm{\Gamma} \bm P(x_T) \mathds{1}'
+\]
+which is easier to code!
+
+Based on p. 38, the likelihood of \(\Prm(X_1 = 1, X_2 = 1, X_3 = 1)\) can be rewritten as:
+```{r}
+T = 3
+P1 = diag(c(Pr_1_1, Pr_1_2), nrow = 2, ncol = 2)
+alpha = delta # The stationnary distrib
+for (i in 1:3)
+	alpha = alpha %*% gammaMatrix %*% P1
+
+L_T = MASS::fractions(sum(alpha))
+print(paste0("L_T = ", L_T))
+```
+Good to see they are the same! However, for long series, it will be better to use the log-likelihood, in order to avoid **underflow**!
+
+## Likelihood with missing data
+It is still possible to compute the likelihood when data are missing! In this case, just replace \(P(x_j)\) by the identity matrix, where \(x_j\) is a missing data.

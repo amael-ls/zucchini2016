@@ -69,6 +69,7 @@ n_chains = 4
 stanData = list(
 	nb_data = nb_data, # Number of data without initial state
 	z0 = 0,
+	realStates = data[, Z],
 	Y = data[, Y]
 )
 
@@ -89,16 +90,30 @@ results$cmdstan_diagnose()
 
 rhat_vec = rhat(results)
 range(rhat_vec)
-if (max(rhat_vec) > 1.1)
-{
-	names(rhat_vec[rhat_vec > 1.1])
-}
 
 plot_title = ggplot2::ggtitle("Posterior distributions", "with medians and 80% intervals")
 mcmc_areas(results$draws("alpha"), prob = 0.8) + plot_title
 
 plot_title = ggplot2::ggtitle("Traces for intercept")
 mcmc_trace(results$draws("alpha")) + plot_title
+
+#### Track the dynamics of both process and observation errors
+errorStates = results$draws(variables = "errorSates")
+errorObs = results$draws(variables = "errorObs")
+
+lala = errorStates[, , 50]
+dim(lala)
+plot(lala)
+
+lala = errorObs[, , 50]
+dim(lala)
+
+par(mfrow = c(2,2))
+plot(lala[, 1, ], type = "l")
+plot(lala[, 2, ], type = "l")
+plot(lala[, 3, ], type = "l")
+plot(lala[, 4, ], type = "l")
+dev.off()
 
 ############################################################?
 ######## 		SECOND PART: With missing data 	 	########
@@ -107,7 +122,7 @@ mcmc_trace(results$draws("alpha")) + plot_title
 #### Create data
 ## Common variables
 nb_data = 200 # Number of data
-nb_data_kept = 100 # Make sure to keep enough
+nb_data_kept = 150 # Make sure to keep enough
 
 ## Parameters
 processError = 0.1
@@ -150,6 +165,7 @@ stanData = list(
 	nb_states = nb_data,
 	z0 = 0,
 	indices = c(1, kept_rows),
+	realStates = data[, Z],
 	Y = Y
 )
 
@@ -166,10 +182,23 @@ proc.time() - start
 results
 results$cmdstan_diagnose()
 
-range(rhat(results))
+rhat_vec = rhat(results)
+range(rhat_vec)
 
 plot_title = ggplot2::ggtitle("Posterior distributions", "with medians and 80% intervals")
 mcmc_areas(results$draws("observationError"), prob = 0.8) + plot_title
 
 plot_title = ggplot2::ggtitle("Traces for observationError")
 mcmc_trace(results$draws("observationError")) + plot_title
+
+#### Track the dynamics of both process and observation errors
+errorStates = results$draws(variables = "errorSates")
+errorObs = results$draws(variables = "errorObs")
+
+lala = errorStates[, , 150]
+dim(lala)
+plot(lala)
+
+lala = errorObs[, , 150]
+dim(lala)
+plot(lala[, 1, ], type = "l")

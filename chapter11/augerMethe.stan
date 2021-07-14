@@ -1,7 +1,10 @@
 
 data {
 	int<lower = 1> nb_data; // Number of data without initial state
+
 	real z0; // Initial state
+	
+	real realStates[nb_data + 1]; // The real values of the states
 	real Y[nb_data + 1];
 }
 
@@ -28,4 +31,15 @@ model {
 	}
 
 	target += normal_lpdf(Y[nb_data + 1] | Z[nb_data + 1], observationError); // The forgotten!
+}
+
+generated quantities {
+	real errorSates[nb_data + 1]; // recording dynamics of processError
+	real errorObs[nb_data + 1]; // recording dynamics of observationError
+	
+	for (i in 1:(nb_data + 1))
+		errorSates[i] = Z[i] - realStates[i];
+	
+	for (i in 1:(nb_data + 1))
+		errorObs[i] = Z[i] - Y[i];
 }
